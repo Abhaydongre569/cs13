@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD App - Class Register</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+
+    <h1>Class register (CRUD APP)</h1>
+
+    <div>
+        <input type="text" id="courName" placeholder="Enter Name">
+        <button onclick="addcourse()">add course</button>
+    </div>
+
+    <hr>
+
+    <button onclick="getcourse()">refresh list</button>
+    <ul id="list">
+
+    </ul>
+
+    <script>
+        // Get API Base URL
+        const API_BASE_URL = window.location.origin;
+
+        // Get course
+        async function getcourse() {
+            try {
+                let res = await fetch(`${API_BASE_URL}/api/getcourse`)
+                let data = await res.json()
+                let list = ""
+
+                data.forEach(element => {
+                    list += `<li> <span> ${element.course}</span>
+                      <div> <button class="edit-btn" onclick="updatecourse('${element._id}')">Edit</button>
+                        <button class="del-btn" onclick="deletecourse('${element._id}')">Delete</button>
+                        </div>
+                        </li>`
+                });
+
+                document.querySelector("#list").innerHTML = list
+            } catch (error) {
+                console.error("Error fetching courses:", error);
+                alert("Failed to load courses");
+            }
+        }
+
+        // Add course post method
+        async function addcourse() {
+            try {
+                const course = document.querySelector("#courName").value
+                if (!course.trim()) {
+                    alert("Please enter a course name");
+                    return;
+                }
+                
+                await fetch(`${API_BASE_URL}/api/addcourse`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        course: course
+                    })
+                })
+                getcourse();
+                document.querySelector("#courName").value = ""
+            } catch (error) {
+                console.error("Error adding course:", error);
+                alert("Failed to add course");
+            }
+        }
+
+        // Delete course method
+        async function deletecourse(id) {
+            if (confirm("pakka delete karna hai ?")) {
+                try {
+                    await fetch(`${API_BASE_URL}/api/deletecourse/${id}`, {
+                        method: "DELETE"
+                    });
+                    getcourse()
+                } catch (error) {
+                    console.error("Error deleting course:", error);
+                    alert("Failed to delete course");
+                }
+            }
+        }
+
+        // Update course method
+        async function updatecourse(id) {
+            const newcourse = prompt("enter your name")
+
+            if (newcourse) {
+                try {
+                    await fetch(`${API_BASE_URL}/api/updatecourse/${id}`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ course: newcourse })
+                    })
+                    getcourse()
+                } catch (error) {
+                    console.error("Error updating course:", error);
+                    alert("Failed to update course");
+                }
+            }
+        }
+
+        // Load courses on page load
+        getcourse()
+    </script>
+
+</body>
+
+</html>

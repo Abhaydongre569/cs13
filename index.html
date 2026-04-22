@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+
+    <h1>Class register (CRUD APP)</h1>
+
+    <div>
+        <input type="text" id="courName" placeholder="Enter Name">
+        <button onclick="addcourse()">add course</button>
+    </div>
+
+    <hr>
+
+    <button onclick="getcourse()">refresh list</button>
+    <ul id="list">
+
+    </ul>
+
+    <script>
+
+                //  get course
+
+        async function getcourse() {
+
+
+            let res = await fetch("http://localhost:5000/getcourse")
+            let data = await res.json()
+            let list = ""
+
+            data.forEach(element => {
+
+                // console.log(element.course)
+                list += `<li> <span> ${element.course}</span>
+                  <div> <button class="edit-btn" onclick="updatecourse('${element._id}')">Edit</button>
+                    <button class="del-btn" onclick="deletecourse('${element._id}')">Delete</button>
+                    </div>
+                    </li>`
+
+            });
+
+            document.querySelector("#list").innerHTML = list
+        }
+
+        // addcourse post method
+
+        async function addcourse() {
+
+            const course = document.querySelector("#courName").value
+            await fetch("http://localhost:5000/addcourse", {
+
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    course: course
+                })
+            })
+            getcourse();
+            document.querySelector("#courName").value = ""
+        }
+
+            // delete course method
+
+        async function deletecourse(id){
+
+            if(confirm ("pakka delete karna hai ?")){
+
+                await fetch(`http://localhost:5000/deletecourse/${id}`,{
+
+                    method:"DELETE"
+                });
+                getcourse()
+            }
+        }
+
+    //    updatecourse method
+
+        async function updatecourse(id) {
+            const newcourse = prompt("enter your name")
+
+            if (newcourse) {
+
+                await fetch(`http://localhost:5000/updatecourse/${id}`, {
+
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ course: newcourse })
+
+                }
+                )
+            }
+
+            getcourse()
+
+        }
+        getcourse()
+
+
+    </script>
+
+</body>
+
+</html>

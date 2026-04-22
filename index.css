@@ -1,0 +1,38 @@
+body{
+
+    font-family: sans-serif;
+    padding: 20px;
+}
+
+li{
+
+    margin: 10px 0;
+    background: #f0f0f0;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    width: 300px;
+}
+
+button{
+
+    cursor: pointer;
+    margin-left: 5px;
+
+}
+.del-btn{
+
+    background: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 5px;
+
+}
+
+.edit-btn{
+
+    background: #4caf50;
+    color: white;
+    border: none ;
+    padding: 5px;
+}
