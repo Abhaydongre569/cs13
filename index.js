@@ -1,52 +1,14 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const app = express();
-app.use(express.json());
+// Main entry point - for local development
+// All API logic is in api/index.js which is used by Vercel
 
-const cors = require("cors")
-app.use(cors())
+const app = require("./api/index.js");
 
-mongoose
-  .connect("mongodb://localhost:27017/abhi")
-  .then(() => {
-    console.log("connection successfully");
-  })
-  .catch((err) => {
-    console.log("connection invalid", err);
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`✅ Server running on port ${PORT}`);
   });
-
-
-const courseSchema = new mongoose.Schema({
-  course: String,
-});
-
-const Course = mongoose.model("Course", courseSchema);
-
-
-app.post("/addcourse", async (req, res) => {
-  const newcour = new Course({
-    course: req.body.course,
-  });
-
-
-  await newcour.save();
-  res.send(newcour);
-});
-
-app.get("/getcourse", async(req,res)=>{
-let allcourse = await(Course.find())
-res.send(allcourse)
-})
-
-app.put("/updatecourse/:id", async(req,res)=>{
-
-    let newcourse = req.body.course
-    let id = req.params.id
-    let updatecourse = await Course.findByIdAndUpdate(id,{course:newcourse})
-
- res.send({message :"database updated"})
-
-})
+}
 
 app.delete("/deletecourse/:id", async(req,res)=>{
 
