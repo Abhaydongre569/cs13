@@ -11,65 +11,119 @@ app.use(cors());
 // Serve static files from public folder
 app.use(express.static(path.join(__dirname, "../public")));
 
-// MongoDB connection
+// MongoDB URI
 const mongoURI = process.env.MONGODB_URI || "mongodb://localhost:27017/abhi";
 
-mongoose
-  .connect(mongoURI)
-  .then(() => {
-    console.log("MongoDB connection successfully");
-  })
-  .catch((err) => {
-    console.log("connection invalid", err);
-  });
-
-// Course Schema
+// Define Course Schema
 const courseSchema = new mongoose.Schema({
-  course: String,
+  course: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
 });
 
+// Create Course Model
 const Course = mongoose.model("Course", courseSchema);
 
-// Routes
+let dbConnected = false;
+
+// Connect to MongoDB
+mongoose.connect(mongoURI)
+  .then(() => {
+    dbConnected = true;
+    console.log("✅ MongoDB Connection Successful");
+  })
+  .catch((err) => {
+    dbConnected = false;
+    console.error("❌ MongoDB Connection Failed:", err.message);
+  });
+
+// ADD COURSE - POST
 app.post("/api/addcourse", async (req, res) => {
   try {
-    const newcour = new Course({
-      course: req.body.course,
-    });
-    await newcour.save();
-    res.send(newcour);
+    const { course } = req.body;
+    
+    if (!course || !course.trim()) {
+      return res.status(400).json({ error: "Course name required" });
+    }
+
+    const newCourse = new Course({ course: course.trim() });
+    const saved = await newCourse.save();
+    console.log("✅ Course added");
+    res.status(201).json(saved);
   } catch (error) {
-    res.status(500).send({ error: error.message });
+    console.error("❌ Add error:", error.message);
+    res.status(500).json({ error: error.message });
   }
 });
 
+// GET ALL COURSES
 app.get("/api/getcourse", async (req, res) => {
   try {
-    let allcourse = await Course.find();
-    res.send(allcourse);
+    const courses = await Course.find().sort({ createdAt: -1 });
+    console.log("✅ Fetched " + courses.length + " courses");
+    res.status(200).json(courses);
   } catch (error) {
-    res.status(500).send({ error: error.message });
+    console.error("❌ Get error:", error.message);
+    res.status(500).json({ error: error.message });
   }
 });
 
+// UPDATE COURSE
 app.put("/api/updatecourse/:id", async (req, res) => {
   try {
-    let newcourse = req.body.course;
-    let id = req.params.id;
-    let updatecourse = await Course.findByIdAndUpdate(id, { course: newcourse });
-    res.send({ message: "database updated" });
+    const { id } = req.params;
+    const { course } = req.body;
+
+    if (!course || !course.trim()) {
+      return res.status(400).json({ error: "Course name required" });
+    }
+
+    const updated = await Course.findByIdAndUpdate(
+      id,
+      { course: course.trim() },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
+    console.log("✅ Course updated");
+    res.status(200).json(updated);
   } catch (error) {
-    res.status(500).send({ error: error.message });
+    console.error("❌ Update error:", error.message);
+    res.status(500).json({ error: error.message });
   }
 });
 
 app.delete("/api/deletecourse/:id", async (req, res) => {
   try {
-    let id = req.params.id;
-    let deletecourse = await Course.findByIdAndDelete(id);
-    res.send({ message: "delete ho gaya" });
+    if (!dbConnected) {
+      return res.status(503).json({ error: "Database not connected" });
+    }
+
+    const { id } = req.params;
+
+    const deletedCourse = await Course.findByIdAndDelete(id);
+
+    if (!deletedCourse) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
+    res.status(200).json({ 
+      success: true, 
+      message: "Course deleted successfully",
+      data: deletedCourse 
+    });
   } catch (error) {
-    res.status(500).send({ error: error.message });
+    console.error("Delete course error:", error);
+    res.status(500).json({ error: error.message || "Failed to delete course" });
   }
 });
 

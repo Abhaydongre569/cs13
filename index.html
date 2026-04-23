@@ -31,7 +31,7 @@
         async function getcourse() {
 
 
-            let res = await fetch("http://localhost:5000/getcourse")
+            let res = await fetch("http://localhost:5000/api/getcourse")
             let data = await res.json()
             let list = ""
 
@@ -54,7 +54,7 @@
         async function addcourse() {
 
             const course = document.querySelector("#courName").value
-            await fetch("http://localhost:5000/addcourse", {
+            await fetch("http://localhost:5000/api/addcourse", {
 
                 method: "POST",
                 headers: {
@@ -75,7 +75,7 @@
 
             if(confirm ("pakka delete karna hai ?")){
 
-                await fetch(`http://localhost:5000/deletecourse/${id}`,{
+                await fetch(`http://localhost:5000/api/deletecourse/${id}`,{
 
                     method:"DELETE"
                 });
@@ -90,7 +90,7 @@
 
             if (newcourse) {
 
-                await fetch(`http://localhost:5000/updatecourse/${id}`, {
+                await fetch(`http://localhost:5000/api/updatecourse/${id}`, {
 
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },

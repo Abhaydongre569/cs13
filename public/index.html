@@ -27,26 +27,39 @@
     <script>
         // Get API Base URL
         const API_BASE_URL = window.location.origin;
+        console.log("🔗 API Base URL:", API_BASE_URL);
 
         // Get course
         async function getcourse() {
             try {
+                console.log("📥 Fetching courses from:", `${API_BASE_URL}/api/getcourse`);
                 let res = await fetch(`${API_BASE_URL}/api/getcourse`)
+                
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                
                 let data = await res.json()
+                console.log("✅ Courses fetched:", data);
+                
                 let list = ""
 
-                data.forEach(element => {
-                    list += `<li> <span> ${element.course}</span>
-                      <div> <button class="edit-btn" onclick="updatecourse('${element._id}')">Edit</button>
-                        <button class="del-btn" onclick="deletecourse('${element._id}')">Delete</button>
-                        </div>
-                        </li>`
-                });
+                if (Array.isArray(data) && data.length > 0) {
+                    data.forEach(element => {
+                        list += `<li> <span> ${element.course}</span>
+                          <div> <button class="edit-btn" onclick="updatecourse('${element._id}')">Edit</button>
+                            <button class="del-btn" onclick="deletecourse('${element._id}')">Delete</button>
+                            </div>
+                            </li>`
+                    });
+                } else {
+                    list = "<li style='color: #999;'>No courses added yet</li>";
+                }
 
                 document.querySelector("#list").innerHTML = list
             } catch (error) {
-                console.error("Error fetching courses:", error);
-                alert("Failed to load courses");
+                console.error("❌ Error fetching courses:", error);
+                document.querySelector("#list").innerHTML = `<li style='color: red;'>Error loading courses: ${error.message}</li>`;
             }
         }
 
@@ -59,7 +72,8 @@
                     return;
                 }
                 
-                await fetch(`${API_BASE_URL}/api/addcourse`, {
+                console.log("📤 Adding course:", course);
+                let res = await fetch(`${API_BASE_URL}/api/addcourse`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -68,11 +82,20 @@
                         course: course
                     })
                 })
+
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+
+                let result = await res.json();
+                console.log("✅ Course added:", result);
+                
                 getcourse();
                 document.querySelector("#courName").value = ""
+                alert("✅ Course added successfully!");
             } catch (error) {
-                console.error("Error adding course:", error);
-                alert("Failed to add course");
+                console.error("❌ Error adding course:", error);
+                alert("Failed to add course: " + error.message);
             }
         }
 
@@ -80,13 +103,23 @@
         async function deletecourse(id) {
             if (confirm("pakka delete karna hai ?")) {
                 try {
-                    await fetch(`${API_BASE_URL}/api/deletecourse/${id}`, {
+                    console.log("🗑️ Deleting course:", id);
+                    let res = await fetch(`${API_BASE_URL}/api/deletecourse/${id}`, {
                         method: "DELETE"
                     });
+
+                    if (!res.ok) {
+                        throw new Error(`HTTP error! status: ${res.status}`);
+                    }
+
+                    let result = await res.json();
+                    console.log("✅ Course deleted:", result);
+                    
                     getcourse()
+                    alert("✅ Course deleted successfully!");
                 } catch (error) {
-                    console.error("Error deleting course:", error);
-                    alert("Failed to delete course");
+                    console.error("❌ Error deleting course:", error);
+                    alert("Failed to delete course: " + error.message);
                 }
             }
         }
@@ -97,20 +130,31 @@
 
             if (newcourse) {
                 try {
-                    await fetch(`${API_BASE_URL}/api/updatecourse/${id}`, {
+                    console.log("✏️ Updating course:", id, "to:", newcourse);
+                    let res = await fetch(`${API_BASE_URL}/api/updatecourse/${id}`, {
                         method: "PUT",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ course: newcourse })
                     })
+
+                    if (!res.ok) {
+                        throw new Error(`HTTP error! status: ${res.status}`);
+                    }
+
+                    let result = await res.json();
+                    console.log("✅ Course updated:", result);
+                    
                     getcourse()
+                    alert("✅ Course updated successfully!");
                 } catch (error) {
-                    console.error("Error updating course:", error);
-                    alert("Failed to update course");
+                    console.error("❌ Error updating course:", error);
+                    alert("Failed to update course: " + error.message);
                 }
             }
         }
 
         // Load courses on page load
+        console.log("🚀 Loading courses on page load...");
         getcourse()
     </script>
 
